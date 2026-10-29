@@ -3,7 +3,11 @@
   "name": "restfulbooker-api-automation",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test:dev": "cross-env ENV=dev npx playwright test",
+    "test:stage": "cross-env ENV=stage npx playwright test",
+    "test:production": "cross-env ENV=production npx playwright test"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

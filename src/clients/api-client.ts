@@ -1,34 +1,82 @@
-import { expect, type APIRequestContext } from '@playwright/test';
+
+import {
+  type APIRequestContext,
+  type APIResponse,
+} from '@playwright/test';
+
 import { environmentConfig } from '../config/environment.config';
 
 export class ApiClient {
-  constructor(private request: APIRequestContext, private token?: string) {}
+  private token?: string;
 
-  async get(endpoint: string, params: Record<string, string> = {}) {
-    const response = await this.request.get(`${environmentConfig.baseURL}${endpoint}`, {
-      params,
-      headers: this.buildHeaders(),
-    });
-    expect(response.status()).toBe(200);
-    return response.json();
+  constructor(private readonly request: APIRequestContext) {}
+
+  setToken(token: string): void {
+    this.token = token;
   }
 
-  async post(endpoint: string, data: Record<string, unknown> = {}) {
-    const response = await this.request.post(`${environmentConfig.baseURL}${endpoint}`, {
-      data,
-      headers: this.buildHeaders(),
-    });
-    expect(response.status()).toBe(200);
-    return response.json();
-  }
-
-  private buildHeaders() {
+  private buildHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       Accept: 'application/json',
     };
+
     if (this.token) {
       headers.Cookie = `token=${this.token}`;
     }
+
     return headers;
+  }
+
+  private buildUrl(endpoint: string): string {
+    const baseURL = environmentConfig.baseURL.replace(/\/+$/, '');
+    const path = endpoint.replace(/^\/+/, '');
+
+    return `${baseURL}/${path}`;
+  }
+
+  async get(
+    endpoint: string,
+    params: Record<string, string> = {},
+  ): Promise<APIResponse> {
+    return this.request.get(this.buildUrl(endpoint), {
+      params,
+      headers: this.buildHeaders(),
+    });
+  }
+
+  async post(
+    endpoint: string,
+    data: unknown = {},
+  ): Promise<APIResponse> {
+    return this.request.post(this.buildUrl(endpoint), {
+      data,
+      headers: this.buildHeaders(),
+    });
+  }
+
+  async put(
+    endpoint: string,
+    data: unknown,
+  ): Promise<APIResponse> {
+    return this.request.put(this.buildUrl(endpoint), {
+      data,
+      headers: this.buildHeaders(),
+    });
+  }
+
+  async patch(
+    endpoint: string,
+    data: unknown,
+  ): Promise<APIResponse> {
+    return this.request.patch(this.buildUrl(endpoint), {
+      data,
+      headers: this.buildHeaders(),
+    });
+  }
+
+  async delete(endpoint: string): Promise<APIResponse> {
+    return this.request.delete(this.buildUrl(endpoint), {
+      headers: this.buildHeaders(),
+    });
   }
 }
